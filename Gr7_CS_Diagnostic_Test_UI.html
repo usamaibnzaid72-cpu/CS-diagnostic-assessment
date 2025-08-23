@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 7 - Computer Science Diagnostic Assessment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom right, #008080, #004d4d);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 800px;
+            margin: 20px;
+        }
+
+        .logo {
+            display: block;
+            margin: 0 auto 20px auto;
+            max-width: 150px;
+        }
+
+        .title-page, .quiz-page, .result-page {
+            display: none;
+            text-align: center;
+        }
+
+        .title-page {
+            display: block;
+        }
+
+        h1, h2, h3 {
+            color: #ccff90;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #008080;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #004d4d;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .options label {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .matching-pair {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .matching-pair select {
+            width: 45%;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .report-section {
+            text-align: left;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="title-page" id="title-page">
+            <img src="https://storage.googleapis.com/yaschools/schools-logo/148544809806-19-2025-10-34-06.jpg" alt="School Logo" class="logo">
+            <h1>Grade 7 - Computer Science</h1><br></h2>Diagnostic Assessment</h2>
+            <p>Teacher: Mr. Usama Ibnzaid</p>
+            <div class="input-group">
+                <label for="studentName">Student Full Name:</label>
+                <input type="text" id="studentName" required>
+            </div>
+            <button onclick="startTest()">Start Test</button>
+        </div>
+
+        <div class="quiz-page" id="quiz-page">
+            <h2 id="question-counter">Question 1 of 100</h2>
+            <div id="question-container"></div>
+            <button onclick="previousQuestion()" id="previous-button" style="display: none;">Previous</button>
+            <button onclick="nextQuestion()" id="next-button">Next</button>
+            <button onclick="submitTest()" style="display: none;" id="submit-button">Submit Test</button>
+        </div>
+
+        <div class="result-page" id="result-page">
+            <h2>Assessment Report</h2>
+            <p>Student: <span id="student-name-result"></span></p>
+            <p>Your Score: <span id="score"></span> / 100</p>
+            <div class="report-section">
+                <h3>Strengths & Weaknesses</h3>
+                <div id="strengths-weaknesses"></div>
+                <h3>Constructive Feedback & Recommendations</h3>
+                <p id="feedback"></p>
+                <h3>Formal Written Report to Parent/Guardian</h3>
+                <p id="parent-report"></p>
+            </div>
+            <button onclick="downloadReport()">Download the Report</button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            { type: "multiple-choice", question: "1. What is the process of converting an algorithm into a computer program called?", options: ["Compiling", "Executing", "Coding", "Debugging"], answer: "Coding", topic: "Programming" },
+            { type: "true-false", question: "2. The 'If-Then-Else' statement is a type of conditional logic.", answer: "True", topic: "Programming" },
+            { type: "fill-in-the-blank", question: "3. A ________ is a type of data that stores whole numbers without decimals.", answer: "integer", topic: "Data Types" },
+            { type: "matching", question: "4. Match the term to its definition.", pairs: [{ left: "Syntax", right: ["The rules of a programming language", "An error in a program", "A type of variable"] }, { left: "Bug", right: ["An error in a program", "The rules of a programming language", "A type of variable"] }], answers: { "Syntax": "The rules of a programming language", "Bug": "An error in a program" }, topic: "Programming" },
+            { type: "short-answer", question: "5. What is the main purpose of a 'for loop' in programming?", answer: "To repeat a block of code a specific number of times.", topic: "Programming" },
+            { type: "case-study", question: "6. **Case Study:** A student is building a game where a character's score increases by one every time they collect a coin. What programming concept would be used to store and update the score?", answer: "A variable.", topic: "Programming" },
+            { type: "multiple-choice", question: "7. Which of these is a type of cloud service?", options: ["SAAS (Software as a Service)", "TAAS (Tuna as a Service)", "BAAS (Brick as a Service)", "RAAS (Rock as a Service)"], answer: "SAAS (Software as a Service)", topic: "Cloud Computing" },
+            { type: "true-false", question: "8. A URL is a permanent and unique address for a web resource.", answer: "True", topic: "Networking" },
+            { type: "fill-in-the-blank", question: "9. A ________ is a special type of variable that can only hold a true or false value.", answer: "boolean", topic: "Data Types" },
+            { type: "matching", question: "10. Match the data type to the example.", pairs: [{ left: "Integer", right: ["42", "Hello", "3.14"] }, { left: "String", right: ["Hello", "42", "3.14"] }], answers: { "Integer": "42", "String": "Hello" }, topic: "Data Types" },
+            { type: "short-answer", question: "11. What is phishing?", answer: "A cybercrime where you are tricked into giving away personal information.", topic: "Cybersecurity" },
+            { type: "case-study", question: "12. **Case Study:** A user clicks on a link in a suspicious email and their computer's files become encrypted and locked. What type of malware is this likely to be?", answer: "Ransomware.", topic: "Cybersecurity" },
+            { type: "multiple-choice", question: "13. What does 'HTTP' stand for?", options: ["Hypertext Transfer Protocol", "High-Tech Transport Process", "Home Text Transfer Program", "Hyperlink Time-out Protocol"], answer: "Hypertext Transfer Protocol", topic: "Web Development" },
+            { type: "true-false", question: "14. A compiler is a program that translates human-readable code into machine code.", answer: "True", topic: "Programming" },
+            { type: "fill-in-the-blank", question: "15. The ________ is a global network of interconnected computers.", answer: "Internet", topic: "Networking" },
+            { type: "matching", question: "16. Match the term to its security definition.", pairs: [{ left: "Malware", right: ["Harmful software", "A type of hardware", "A type of network"] }, { left: "Firewall", right: ["Protects a network from unauthorized access", "A type of virus", "A type of operating system"] }], answers: { "Malware": "Harmful software", "Firewall": "Protects a network from unauthorized access" }, topic: "Cybersecurity" },
+            { type: "short-answer", question: "17. What is an IP address?", answer: "A unique address assigned to a device on a network.", topic: "Networking" },
+            { type: "case-study", question: "18. **Case Study:** A developer needs to create a program that can store a user's age, name, and whether they are a student. What three data types would be most appropriate?", answer: "Integer (for age), String (for name), and Boolean (for student status).", topic: "Data Types" },
+            { type: "multiple-choice", question: "19. What is a 'function' in programming?", options: ["A type of error", "A block of code that performs a specific task", "A type of keyboard", "A new computer language"], answer: "A block of code that performs a specific task", topic: "Programming" },
+            { type: "true-false", question: "20. The decimal number 8 is represented as 1000 in binary.", answer: "True", topic: "Data Representation" },
+            { type: "fill-in-the-blank", question: "21. A ________ is a program that lets you listen to music and watch movies.", answer: "media player", topic: "Software" },
+            { type: "matching", question: "22. Match the hardware component to its function.", pairs: [{ left: "CPU", right: ["Executes instructions", "Stores temporary data"] }, { left: "RAM", right: ["Stores temporary data", "Executes instructions"] }], answers: { "CPU": "Executes instructions", "RAM": "Stores temporary data" }, topic: "Hardware" },
+            { type: "short-answer", question: "23. What is a computer network?", answer: "Two or more computers connected together to share resources.", topic: "Networking" },
+            { type: "case-study", question: "24. **Case Study:** A school wants to store student report cards online so teachers and parents can access them securely. What kind of cloud service would be most suitable?", answer: "Cloud storage or an online database service.", topic: "Cloud Computing" },
+            { type: "multiple-choice", question: "25. Which of the following is an example of a database management system?", options: ["Adobe Photoshop", "Microsoft Word", "Google Chrome", "MySQL"], answer: "MySQL", topic: "Databases" },
+            { type: "true-false", question: "26. An algorithm must be written in a programming language to be valid.", answer: "False", topic: "Programming" },
+            { type: "fill-in-the-blank", question: "27. A _________ is a type of attack that floods a server with requests to make it unavailable to users.", answer: "DDoS attack (Distributed Denial-of-Service)", topic: "Cybersecurity" },
+            { type: "matching", question: "28. Match the device to its category.", pairs: [{ left: "Scanner", right: ["Input Device", "Output Device"] }, { left: "Printer", right: ["Output Device", "Input Device"] }], answers: { "Scanner": "Input Device", "Printer": "Output Device" }, topic: "Hardware" },
+            { type: "short-answer", question: "29. What is the difference between a variable and a constant in programming?", answer: "A variable's value can change, while a constant's value remains the same.", topic: "Programming" },
+            { type: "case-study", question: "30. **Case Study:** A programmer needs to store a list of names. What data structure would be most efficient?", answer: "An array or a list.", topic: "Data Structures" },
+            { type: "multiple-choice", question: "31. What is the process of finding and fixing errors in code called?", options: ["Coding", "Debugging", "Running", "Compiling"], answer: "Debugging", topic: "Programming" },
+            { type: "true-false", question: "32. A 'float' is a data type used for storing text.", answer: "False", topic: "Data Types" },
+            { type: "fill-in-the-blank", question: "33. A ________ is a program that allows you to manage and edit files on a computer.", answer: "file manager", topic: "Software" },
+            { type: "matching", question: "34. Match the file extension to its type.", pairs: [{ left: ".png", right: ["Image file", "Document file"] }, { left: ".pdf", right: ["Document file", "Image file"] }], answers: { ".png": "Image file", ".pdf": "Document file" }, topic: "File Types" },
+            { type: "short-answer", question: "35. What is the purpose of a firewall?", answer: "To monitor and control incoming and outgoing network traffic.", topic: "Cybersecurity" },
+            { type: "case-study", question: "36. **Case Study:** A company wants to use a service that provides access to software over the internet without having to install it on their own computers. What is this model called?", answer: "SaaS (Software as a Service).", topic: "Cloud Computing" },
+            { type: "multiple-choice", question: "37. What is a database?", options: ["A type of computer virus", "An organized collection of data", "A type of network cable", "A programming language"], answer: "An organized collection of data", topic: "Databases" },
+            { type: "true-false", question: "38. The binary number 101 is equal to the decimal number 5.", answer: "True", topic: "Data Representation" },
+            { type: "fill-in-the-blank", question: "39. The process of turning a high-level language into machine code is called ________.", answer: "compilation", topic: "Programming" },
+            { type: "matching", question: "40. Match the term to its security purpose.", pairs: [{ left: "Antivirus", right: ["Scans for and removes malware", "Protects against network attacks"] }, { left: "Encryption", right: ["Scrambles data to protect it", "Scans for and removes malware"] }], answers: { "Antivirus": "Scans for and removes malware", "Encryption": "Scrambles data to protect it" }, topic: "Cybersecurity" },
+            { type: "short-answer", question: "41. What is a 'string' in programming?", answer: "A data type used to represent text.", topic: "Data Types" },
+            { type: "case-study", question: "42. **Case Study:** A student wants to create a simple program that asks the user for their name and then prints 'Hello, [name]!'. What two programming concepts would be used?", answer: "Input/Output and variables.", topic: "Programming" },
+            { type: "multiple-choice", question: "43. What is a computer's operating system?", options: ["A hardware component", "A type of game", "The master control program of the computer", "A file management tool"], answer: "The master control program of the computer", topic: "Software" },
+            { type: "true-false", question: "44. The binary number 110 is equal to the decimal number 6.", answer: "True", topic: "Data Representation" },
+            { type: "fill-in-the-blank", question: "45. An algorithm is a set of instructions used to solve a problem or complete a ________.", answer: "task", topic: "Programming" },
+            { type: "matching", question: "46. Match the file type to its purpose.", pairs: [{ left: ".txt", right: ["Plain text file", "Executable program"] }, { left: ".exe", right: ["Executable program", "Plain text file"] }], answers: { ".txt": "Plain text file", ".exe": "Executable program" }, topic: "File Types" },
+            { type: "short-answer", question: "47. What is the difference between a LAN and a WAN?", answer: "A LAN (Local Area Network) is a network in a small area, while a WAN (Wide Area Network) covers a large geographical area.", topic: "Networking" },
+            { type: "case-study", question: "48. **Case Study:** A programmer needs to store a list of test scores for a class. The scores can be whole numbers from 0 to 100. What data type should be used for the scores?", answer: "Integer.", topic: "Data Types" },
+            { type: "multiple-choice", question: "49. Which of these is a type of programming loop?", options: ["While loop", "When loop", "Before loop", "After loop"], answer: "While loop", topic: "Programming" },
+            { type: "true-false", question: "50. A variable that stores a student's grade point average would likely be a 'float' or 'decimal' data type.", answer: "True", topic: "Data Types" },
+            { type: "fill-in-the-blank", question: "51. A ________ is a type of malware that can copy itself and spread to other computers.", answer: "worm", topic: "Cybersecurity" },
+            { type: "matching", question: "52. Match the network term to its definition.", pairs: [{ left: "Server", right: ["A computer that provides resources to other computers", "A program that translates code"] }, { left: "Client", right: ["A computer that requests services from a server", "A program that translates code"] }], answers: { "Server": "A computer that provides resources to other computers", "Client": "A computer that requests services from a server" }, topic: "Networking" },
+            { type: "short-answer", question: "53. What is a database table?", answer: "A collection of data organized into rows and columns.", topic: "Databases" },
+            { type: "case-study", question: "54. **Case Study:** A developer wants to create a program that calculates the average of five numbers. What programming construct would they use to add up all the numbers?", answer: "A loop.", topic: "Programming" },
+            { type: "multiple-choice", question: "55. Which of these is an example of an input device?", options: ["Monitor", "Speaker", "Webcam", "Printer"], answer: "Webcam", topic: "Hardware" },
+            { type: "true-false", question: "56. A search engine is a type of operating system.", answer: "False", topic: "Software" },
+            { type: "fill-in-the-blank", question: "57. An ________ is a unique address for a device on a network.", answer: "IP address", topic: "Networking" },
+            { type: "matching", question: "58. Match the data type to its use.", pairs: [{ left: "String", right: ["Storing a name", "Storing a temperature reading"] }, { left: "Float", right: ["Storing a temperature reading", "Storing a name"] }], answers: { "String": "Storing a name", "Float": "Storing a temperature reading" }, topic: "Data Types" },
+            { type: "short-answer", question: "59. What is a syntax error?", answer: "An error in a program that occurs when the code breaks the rules of the language.", topic: "Programming" },
+            { type: "case-study", question: "60. **Case Study:** A student wants to share a large video file with a friend without using a flash drive. What cloud service would be most helpful?", answer: "Cloud storage service (e.g., Google Drive, Dropbox).", topic: "Cloud Computing" },
+            { type: "multiple-choice", question: "61. What does the term 'protocol' refer to in networking?", options: ["A type of cable", "A set of rules for communication", "A computer virus", "A type of server"], answer: "A set of rules for communication", topic: "Networking" },
+            { type: "true-false", question: "62. An algorithm must be translated into a programming language to be executed by a computer.", answer: "True", topic: "Programming" },
+            { type: "fill-in-the-blank", question: "63. The smallest unit of data in a computer is a ________.", answer: "bit", topic: "Data Representation" },
+            { type: "matching", question: "64. Match the term to its purpose.", pairs: [{ left: "Router", right: ["Directs network traffic", "Stores website data"] }, { left: "Server", right: ["Stores website data", "Directs network traffic"] }], answers: { "Router": "Directs network traffic", "Server": "Stores website data" }, topic: "Networking" },
+            { type: "short-answer", question: "65. What is the difference between a row and a column in a database table?", answer: "A row represents a single record, and a column represents a specific field of data.", topic: "Databases" },
+            { type: "case-study", question: "66. **Case Study:** A programmer needs to ensure a user's password is not easily readable if the database is stolen. What security method would be most effective?", answer: "Encryption or Hashing.", topic: "Cybersecurity" },
+            { type: "multiple-choice", question: "67. What is the process of breaking down a problem into smaller, manageable steps?", options: ["Decomposition", "Abstraction", "Pattern Recognition", "Algorithmic thinking"], answer: "Decomposition", topic: "Algorithmic Thinking" },
+            { type: "true-false", question: "68. A 'string' can contain numbers, letters, and symbols.", answer: "True", topic: "Data Types" },
+            { type: "fill-in-the-blank", question: "69. ________ is a type of malware that gathers information about a user without their knowledge.", answer: "Spyware", topic: "Cybersecurity" },
+            { type: "matching", question: "70. Match the term to its definition.", pairs: [{ left: "Database", right: ["An organized collection of data", "A type of programming error"] }, { left: "Field", right: ["A column in a database table", "An organized collection of data"] }], answers: { "Database": "An organized collection of data", "Field": "A column in a database table" }, topic: "Databases" },
+            { type: "short-answer", question: "71. What is the difference between 'input' and 'output' in computing?", answer: "Input is data a user gives to a computer; output is data the computer gives back to the user.", topic: "General Concepts" },
+            { type: "case-study", question: "72. **Case Study:** A student wants to create a simple program that counts from 1 to 10. What programming construct would they use?", answer: "A loop (e.g., a for loop or a while loop).", topic: "Programming" },
+            { type: "multiple-choice", question: "73. What is a 'primary key' in a database?", options: ["A key that locks the database", "A unique identifier for each record", "A key that links to another table", "A password for the database"], answer: "A unique identifier for each record", topic: "Databases" },
+            { type: "true-false", question: "74. A 'while loop' repeats a block of code as long as a certain condition is true.", answer: "True", topic: "Programming" },
+            { type: "fill-in-the-blank", question: "75. A _________ is a computer that is connected to a network and uses the resources provided by a server.", answer: "client", topic: "Networking" },
+            { type: "matching", question: "76. Match the term to its security risk.", pairs: [{ left: "Phishing", right: ["Tricking people to reveal information", "Attacks by flooding a server"] }, { left: "DDoS", right: ["Attacks by flooding a server", "Tricking people to reveal information"] }], answers: { "Phishing": "Tricking people to reveal information", "DDoS": "Attacks by flooding a server" }, topic: "Cybersecurity" },
+            { type: "short-answer", question: "77. What is an 'array' in programming?", answer: "A data structure that stores a collection of elements, usually of the same data type, in a contiguous memory location.", topic: "Data Structures" },
+            { type: "case-study", question: "78. **Case Study:** A student wants to store a list of prices that include decimals, like $1.99. What data type should they use?", answer: "Float or decimal.", topic: "Data Types" },
+            { type: "multiple-choice", question: "79. What is a 'packet' in a computer network?", options: ["A small box of data", "A type of network cable", "A computer program", "A type of server"], answer: "A small box of data", topic: "Networking" },
+            { type: "true-false", question: "80. RAM is a type of volatile memory, meaning its data is lost when the power is turned off.", answer: "True", topic: "Hardware" },
+            { type: "fill-in-the-blank", question: "81. A _________ is the set of rules that defines how data is formatted and transmitted over a network.", answer: "protocol", topic: "Networking" },
+            { type: "matching", question: "82. Match the term to its meaning.", pairs: [{ left: "Router", right: ["Connects multiple networks together", "Connects two computers directly"] }, { left: "Switch", right: ["Connects multiple devices within a network", "Connects multiple networks together"] }], answers: { "Router": "Connects multiple networks together", "Switch": "Connects multiple devices within a network" }, topic: "Networking" },
+            { type: "short-answer", question: "83. What is the difference between HTML and CSS?", answer: "HTML defines the structure and content of a web page, while CSS defines its style and layout.", topic: "Web Development" },
+            { type: "case-study", question: "84. **Case Study:** A programmer wants to write a program that gives a user a different response based on whether their age is greater than or less than 18. What programming construct should they use?", answer: "An if-else statement.", topic: "Programming" },
+            { type: "multiple-choice", question: "85. What is the process of securing data by scrambling it?", options: ["Hashing", "Encryption", "Encoding", "Decrypting"], answer: "Encryption", topic: "Cybersecurity" },
+            { type: "true-false", question: "86. An algorithm is a step-by-step plan for solving a problem.", answer: "True", topic: "Algorithmic Thinking" },
+            { type: "fill-in-the-blank", question: "87. ________ is the process of finding and removing bugs from a computer program.", answer: "Debugging", topic: "Programming" },
+            { type: "matching", question: "88. Match the device to its category.", pairs: [{ left: "Keyboard", right: ["Input Device", "Output Device"] }, { left: "Monitor", right: ["Output Device", "Input Device"] }], answers: { "Keyboard": "Input Device", "Monitor": "Output Device" }, topic: "Hardware" },
+            { type: "short-answer", question: "89. What is 'abstraction' in computer science?", answer: "The process of hiding complex details from the user.", topic: "Algorithmic Thinking" },
+            { type: "case-study", question: "90. **Case Study:** A company needs to store its financial records on a secure and accessible server without buying its own hardware. What would be the most cost-effective solution?", answer: "Using a cloud computing service.", topic: "Cloud Computing" },
+            { type: "multiple-choice", question: "91. What is the term for a unique row in a database table?", options: ["Attribute", "Record", "Field", "Key"], answer: "Record", topic: "Databases" },
+            { type: "true-false", question: "92. A 'function' in programming is a way to group related code together for reuse.", answer: "True", topic: "Programming" },
+            { type: "fill-in-the-blank", question: "93. A _________ is a type of cloud service that provides a computing platform and allows users to run their own applications.", answer: "PaaS (Platform as a Service)", topic: "Cloud Computing" },
+            { type: "matching", question: "94. Match the term to its purpose.", pairs: [{ left: "Client", right: ["Requests services from a server", "Provides services to a client"] }, { left: "Server", right: ["Provides services to a client", "Requests services from a server"] }], answers: { "Client": "Requests services from a server", "Server": "Provides services to a client" }, topic: "Networking" },
+            { type: "short-answer", question: "95. What is the purpose of a 'data type' in programming?", answer: "To define the kind of data a variable can hold and the operations that can be performed on it.", topic: "Data Types" },
+            { type: "case-study", question: "96. **Case Study:** A student wants to create a program to store a list of all their classmates' names. Which data structure should they use?", answer: "An array or a list.", topic: "Data Structures" },
+            { type: "multiple-choice", question: "97. What is a 'database schema'?", options: ["The content of a database", "The structure of a database", "A type of database software", "A database backup"], answer: "The structure of a database", topic: "Databases" },
+            { type: "true-false", question: "98. A 'loop' is a control flow statement that allows a block of code to be executed repeatedly.", answer: "True", topic: "Programming" },
+            { type: "fill-in-the-blank", question: "99. A _________ is a type of network that connects devices within a limited area, such as a school or office.", answer: "LAN (Local Area Network)", topic: "Networking" },
+            { type: "short-answer", question: "100. What is a 'tuple' in programming?", answer: "A data structure that is similar to an array but is immutable (its contents cannot be changed).", topic: "Data Types" }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const userAnswers = {};
+        let studentName = "";
+
+        const titlePage = document.getElementById('title-page');
+        const quizPage = document.getElementById('quiz-page');
+        const resultPage = document.getElementById('result-page');
+        const questionContainer = document.getElementById('question-container');
+        const questionCounter = document.getElementById('question-counter');
+        const submitButton = document.getElementById('submit-button');
+        const nextButton = document.getElementById('next-button');
+        const previousButton = document.getElementById('previous-button');
+
+        function startTest() {
+            studentName = document.getElementById('studentName').value.trim();
+            if (!studentName) {
+                alert("Please enter your full name to start the test.");
+                return;
+            }
+            document.getElementById('student-name-result').textContent = studentName;
+            titlePage.style.display = 'none';
+            quizPage.style.display = 'block';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex < 0) currentQuestionIndex = 0;
+            if (currentQuestionIndex >= quizData.length) currentQuestionIndex = quizData.length - 1;
+
+            const q = quizData[currentQuestionIndex];
+            questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+            questionContainer.innerHTML = '';
+            
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('question');
+            
+            let questionHTML = `<h4>${q.question}</h4>`;
+            questionDiv.innerHTML = questionHTML;
+
+            if (q.type === 'multiple-choice' || q.type === 'true-false') {
+                const optionsDiv = document.createElement('div');
+                optionsDiv.classList.add('options');
+                (q.options || ["True", "False"]).forEach(option => {
+                    const inputId = `q${currentQuestionIndex}-opt-${option.replace(/\s+/g, '-')}`;
+                    optionsDiv.innerHTML += `
+                        <label for="${inputId}">
+                            <input type="radio" name="answer" id="${inputId}" value="${option}"> ${option}
+                        </label>
+                    `;
+                });
+                questionDiv.appendChild(optionsDiv);
+                if (userAnswers[currentQuestionIndex]) {
+                    const savedAnswer = userAnswers[currentQuestionIndex];
+                    const selectedInput = document.querySelector(`input[name="answer"][value="${savedAnswer}"]`);
+                    if (selectedInput) {
+                        selectedInput.checked = true;
+                    }
+                }
+            } else if (q.type === 'fill-in-the-blank' || q.type === 'short-answer' || q.type === 'case-study') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Type your answer here...';
+                input.id = 'text-answer';
+                input.style.width = 'calc(100% - 22px)';
+                if (userAnswers[currentQuestionIndex]) {
+                    input.value = userAnswers[currentQuestionIndex];
+                }
+                questionDiv.appendChild(input);
+            } else if (q.type === 'matching') {
+                const matchingDiv = document.createElement('div');
+                q.pairs.forEach((pair, index) => {
+                    const pairDiv = document.createElement('div');
+                    pairDiv.classList.add('matching-pair');
+                    const selectId = `matching-${currentQuestionIndex}-${index}`;
+                    pairDiv.innerHTML = `
+                        <span>${pair.left}</span>
+                        <select id="${selectId}">
+                            <option value="">-- Select --</option>
+                            ${pair.right.map(r => `<option value="${r}">${r}</option>`).join('')}
+                        </select>
+                    `;
+                    matchingDiv.appendChild(pairDiv);
+                    setTimeout(() => {
+                        if (userAnswers[currentQuestionIndex] && userAnswers[currentQuestionIndex][pair.left]) {
+                            document.getElementById(selectId).value = userAnswers[currentQuestionIndex][pair.left];
+                        }
+                    }, 0);
+                });
+                questionDiv.appendChild(matchingDiv);
+            }
+
+            questionContainer.appendChild(questionDiv);
+
+            previousButton.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextButton.style.display = 'none';
+                submitButton.style.display = 'inline-block';
+            } else {
+                nextButton.style.display = 'inline-block';
+                submitButton.style.display = 'none';
+            }
+        }
+
+        function saveAnswer() {
+            const q = quizData[currentQuestionIndex];
+            if (q.type === 'multiple-choice' || q.type === 'true-false') {
+                const selected = document.querySelector('input[name="answer"]:checked');
+                userAnswers[currentQuestionIndex] = selected ? selected.value : null;
+            } else if (q.type === 'fill-in-the-blank' || q.type === 'short-answer' || q.type === 'case-study') {
+                const textAnswer = document.getElementById('text-answer');
+                userAnswers[currentQuestionIndex] = textAnswer ? textAnswer.value.trim() : null;
+            } else if (q.type === 'matching') {
+                const matchingAnswers = {};
+                q.pairs.forEach((pair, index) => {
+                    const select = document.getElementById(`matching-${currentQuestionIndex}-${index}`);
+                    matchingAnswers[pair.left] = select.value;
+                });
+                userAnswers[currentQuestionIndex] = matchingAnswers;
+            }
+        }
+
+        function validateAnswer() {
+            const q = quizData[currentQuestionIndex];
+            if (q.type === 'multiple-choice' || q.type === 'true-false') {
+                return document.querySelector('input[name="answer"]:checked') !== null;
+            } else if (q.type === 'fill-in-the-blank' || q.type === 'short-answer' || q.type === 'case-study') {
+                const textAnswer = document.getElementById('text-answer');
+                return textAnswer && textAnswer.value.trim() !== "";
+            } else if (q.type === 'matching') {
+                let allSelected = true;
+                q.pairs.forEach((pair, index) => {
+                    const select = document.getElementById(`matching-${currentQuestionIndex}-${index}`);
+                    if (select.value === "") allSelected = false;
+                });
+                return allSelected;
+            }
+            return true;
+        }
+
+        function nextQuestion() {
+            if (validateAnswer()) {
+                saveAnswer();
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                alert("Please answer the current question before proceeding.");
+            }
+        }
+
+        function previousQuestion() {
+            saveAnswer();
+            currentQuestionIndex--;
+            loadQuestion();
+        }
+
+        function submitTest() {
+            if (validateAnswer()) {
+                saveAnswer();
+                let correctCount = 0;
+                const topicScores = {};
+                const topicTotals = {};
+                
+                quizData.forEach((q, index) => {
+                    let isCorrect = false;
+                    const userAnswer = userAnswers[index];
+                    const topic = q.topic || "General";
+
+                    topicTotals[topic] = (topicTotals[topic] || 0) + 1;
+
+                    if (q.type === 'multiple-choice' || q.type === 'true-false') {
+                        if (userAnswer === q.answer) isCorrect = true;
+                    } else if (q.type === 'fill-in-the-blank' || q.type === 'short-answer' || q.type === 'case-study') {
+                        if (userAnswer && userAnswer.toLowerCase() === q.answer.toLowerCase()) isCorrect = true;
+                    } else if (q.type === 'matching') {
+                        let allMatchedCorrectly = true;
+                        if (userAnswer) {
+                            for (const term in q.answers) {
+                                if (userAnswer[term] !== q.answers[term]) {
+                                    allMatchedCorrectly = false;
+                                    break;
+                                }
+                            }
+                        } else {
+                            allMatchedCorrectly = false;
+                        }
+                        isCorrect = allMatchedCorrectly;
+                    }
+
+                    if (isCorrect) {
+                        correctCount++;
+                        topicScores[topic] = (topicScores[topic] || 0) + 1;
+                    }
+                });
+
+                score = correctCount;
+                showResults(topicScores, topicTotals);
+            } else {
+                alert("Please answer the final question before submitting.");
+            }
+        }
+
+        function showResults(topicScores, topicTotals) {
+            quizPage.style.display = 'none';
+            resultPage.style.display = 'block';
+
+            document.getElementById('score').textContent = score;
+            
+            const strengths = [];
+            const weaknesses = [];
+            
+            let strengthsWeaknessesHTML = "<ul>";
+            for (const topic in topicTotals) {
+                const correct = topicScores[topic] || 0;
+                const total = topicTotals[topic];
+                const percentage = (correct / total) * 100;
+                strengthsWeaknessesHTML += `<li>${topic}: ${correct}/${total} (${percentage.toFixed(0)}%)</li>`;
+                if (percentage >= 80) strengths.push(topic);
+                if (percentage < 50) weaknesses.push(topic);
+            }
+            strengthsWeaknessesHTML += "</ul>";
+            document.getElementById('strengths-weaknesses').innerHTML = strengthsWeaknessesHTML;
+
+            const feedback = `
+                Based on your performance, here is a summary of your strengths and areas for development:
+                <br><br><strong>Strengths:</strong> You demonstrated a strong understanding of the following topics: ${strengths.length > 0 ? strengths.join(', ') : 'All topics'}.
+                <br><br><strong>Weaknesses:</strong> Areas that could use more focus include: ${weaknesses.length > 0 ? weaknesses.join(', ') : 'No specific weaknesses were identified'}.
+                <br><br><strong>Recommendations:</strong>
+                <br>- To build on your strong foundation, consider exploring more advanced concepts in your areas of strength.
+                <br>- For areas of weakness, it is recommended that you review core concepts. Reviewing notes, online tutorials, or seeking clarification would be beneficial.
+            `;
+            document.getElementById('feedback').innerHTML = feedback;
+
+            // Formal written report
+            const today = new Date();
+            const date = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const parentReportText = `
+[Your School Name]
+[School Address]
+[City, Postal Code]
+[Phone Number]
+[Email Address]
+
+${date}
+
+To the Parents/Guardians of ${studentName},
+
+This letter is a formal report on the Grade 7 Computer Science Diagnostic Test administered on ${date}. The purpose of this assessment was to evaluate your child's foundational knowledge in key areas of computer science.
+
+**Student Information:**
+Student Name: ${studentName}
+Total Score: ${score} out of 100
+
+**Performance Overview:**
+Your child demonstrated a commendable understanding of computer science principles, with particular strength in the following topics: ${strengths.length > 0 ? strengths.join(', ') : 'All topics assessed'}. This indicates a strong grasp of core concepts in these areas.
+
+**Areas for Development:**
+Based on the results, areas that may require additional attention include: ${weaknesses.length > 0 ? weaknesses.join(', ') : 'No specific weaknesses were identified, which is excellent'}. Focusing on these topics through targeted practice can help strengthen your child’s overall comprehension.
+
+**Recommendations:**
+It is recommended that your child reviews the materials related to the identified areas for development. Continued engagement with these subjects will be crucial for their progress.
+
+Please feel free to contact me at your convenience to discuss these results further.
+
+Sincerely,
+
+Mr. Usama Ibnzaid
+Computer Science Teacher
+[Your Teacher Email]
+`;
+            document.getElementById('parent-report').innerText = parentReportText.trim();
+        }
+
+        function downloadReport() {
+            const reportContent = document.getElementById('parent-report').innerText;
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${studentName.replace(/ /g, '_')}_Computer_Science_Report.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
